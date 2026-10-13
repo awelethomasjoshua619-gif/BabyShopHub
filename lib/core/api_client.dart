@@ -179,6 +179,17 @@ class ApiClient {
         "Can't reach the server. Check your connection and that the backend is running.",
       );
     }
+    // The backend uses 202 when the password is correct but the account still
+    // needs email verification. This is not a completed login and has no cookie.
+    if (res.statusCode == 202) {
+      final message = utf8.decode(res.bodyBytes).trim();
+      throw ApiException(
+        message.isEmpty
+            ? 'Please verify your email before logging in.'
+            : message,
+        res.statusCode,
+      );
+    }
     _handle(res); // throws a readable error when the login failed
     if (kIsWeb) return 'browser-session'; // the browser keeps the cookie
     final cookie = RegExp(

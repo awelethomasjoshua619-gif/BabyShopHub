@@ -68,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
             textInputAction: TextInputAction.search,
             onSubmitted: (_) => _doSearch(),
             decoration: InputDecoration(
-              hintText: 'Search for products, brands...',
+              hintText: 'Search clothes, plates, carriers, bottles...',
               prefixIcon: const Icon(Icons.search, color: AppColors.hint),
               filled: true,
               fillColor: AppColors.field,
@@ -80,6 +80,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderSide: BorderSide.none),
             ),
           ),
+        ),
+        // Static promo banner — rendered immediately, no data dependency.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+          child: _banner(context),
         ),
         Expanded(
           child: AsyncView<(List<Category>, List<Product>)>(
@@ -93,7 +98,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 children: [
-                  _banner(context),
                   const SizedBox(height: 16),
                   _categoryRow(context, categories),
                   SectionTitle('Popular Products',
@@ -168,23 +172,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
                               height: 1.15)),
-                      const SizedBox(height: 12),
-                      GestureDetector(
-                        onTap: () => pushPage(context,
-                            const ProductListScreen(title: 'All Products')),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 18, vertical: 9),
-                          decoration: BoxDecoration(
-                              color: AppColors.pink,
-                              borderRadius: BorderRadius.circular(20)),
-                          child: const Text('Shop Now',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 13)),
-                        ),
-                      ),
                     ],
                   ),
                 ),

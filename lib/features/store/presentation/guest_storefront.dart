@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/api_config.dart';
 import '../../../core/format.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../models/models.dart';
@@ -307,7 +308,7 @@ class _GuestStorefrontState extends State<GuestStorefront> {
                           controller: _searchController,
                           onChanged: (_) => setState(() {}),
                           decoration: InputDecoration(
-                            hintText: 'Search for products, brands...',
+                            hintText: 'Search clothes, plates, carriers, bottles...',
                             hintStyle: const TextStyle(fontSize: 12),
                             prefixIcon: const Icon(
                               Icons.search_rounded,
@@ -530,23 +531,6 @@ class _PromotionBanner extends StatelessWidget {
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 27,
-                        child: FilledButton(
-                          onPressed: onPressed,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFFFF6F98),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 13),
-                            textStyle: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          child: const Text('Shop Now'),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -652,7 +636,7 @@ class _ProductCard extends StatelessWidget {
                                 child: Icon(Icons.child_care,
                                     size: 34, color: Color(0xFF5683A9)))
                             : Image.network(
-                                product.image!,
+                                resolveImageUrl(product.image!),
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, _, _) => const Center(
                                     child: Icon(Icons.child_care,

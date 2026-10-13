@@ -110,8 +110,8 @@ class ProductListScreen extends StatefulWidget {
 class _ProductListScreenState extends State<ProductListScreen> {
   late final TextEditingController _search =
       TextEditingController(text: widget.keyword ?? '');
-  List<Brand> _brands = [];
-  int? _brandId;
+  List<Category> _categories = [];
+  int? _selectedCategoryId;
   String _sortBy = 'productId';
   String _direction = 'asc';
   late Future<List<Product>> _future = _load();
@@ -119,8 +119,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
   @override
   void initState() {
     super.initState();
-    ShopApi.brands().then((b) {
-      if (mounted) setState(() => _brands = b);
+    _selectedCategoryId = widget.categoryId;
+    ShopApi.categories().then((c) {
+      if (mounted) setState(() => _categories = c);
     }).catchError((_) {});
   }
 
@@ -132,8 +133,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   Future<List<Product>> _load() => ShopApi.products(
         keyword: _search.text,
-        categoryId: widget.categoryId,
-        brandId: _brandId,
+        categoryId: _selectedCategoryId,
         sortBy: _sortBy,
         direction: _direction,
       );
@@ -144,9 +144,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final brandLabels = ['All brands', ..._brands.map((b) => b.name)];
-    final selectedBrand =
-        _brandId == null ? 0 : 1 + _brands.indexWhere((b) => b.id == _brandId);
+    final categoryLabels = ['All Sections', ..._categories.map((c) => c.name)];
+    final selectedCategory = _selectedCategoryId == null
+        ? 0
+        : 1 + _categories.indexWhere((c) => c.id == _selectedCategoryId);
 
     return Scaffold(
       appBar: AppBar(
@@ -182,7 +183,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               textInputAction: TextInputAction.search,
               onSubmitted: (_) => _reload(),
               decoration: InputDecoration(
-                hintText: 'Search by name, brand or category',
+                hintText: 'Search clothes, plates, carriers, bottles...',
                 prefixIcon: const Icon(Icons.search, color: AppColors.hint),
                 suffixIcon: _search.text.isEmpty
                     ? null
@@ -204,12 +205,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ),
             ),
           ),
-          if (_brands.isNotEmpty)
+          if (widget.categoryId == null && _categories.isNotEmpty)
             ChipRow(
-              labels: brandLabels,
-              selected: selectedBrand < 0 ? 0 : selectedBrand,
+              labels: categoryLabels,
+              selected: selectedCategory < 0 ? 0 : selectedCategory,
               onSelected: (i) {
-                _brandId = i == 0 ? null : _brands[i - 1].id;
+                _selectedCategoryId = i == 0 ? null : _categories[i - 1].id;
                 _reload();
               },
             ),
@@ -270,9 +271,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           fontWeight: FontWeight.w600,
                           fontSize: 14)),
                   const SizedBox(height: 2),
-                  Text(p.brandName,
-                      style: const TextStyle(
-                          color: AppColors.slate, fontSize: 12)),
+                  if (p.categoryName.isNotEmpty)
+                    Text(p.categoryName,
+                        style: const TextStyle(
+                            color: AppColors.slate, fontSize: 12)),
                   const SizedBox(height: 6),
                   Text(p.inStock ? naira(p.price) : 'Out of stock',
                       style: TextStyle(

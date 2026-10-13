@@ -704,8 +704,7 @@ class _OnboardingButton extends StatelessWidget {
   }
 }
 
-/// Shopper sign-in and registration screens. Authentication is intentionally
-/// not connected until the backend contract is ready.
+/// Shopper sign-in and registration screens.
 class ShopperAccountFlow extends StatefulWidget {
   const ShopperAccountFlow({
     required this.onBackToOnboarding,
@@ -800,8 +799,10 @@ class _ShopperSignInPageState extends State<_ShopperSignInPage> {
       // Success: the app root swaps to the shop by itself.
     } on ApiException catch (e) {
       if (!mounted) return;
-      setState(() => _isSubmitting = false);
-      final notVerified = e.message.toLowerCase().contains('not verified');
+      final notVerified =
+          e.statusCode == 202 ||
+          e.message.toLowerCase().contains('not verified') ||
+          e.message.toLowerCase().contains('verification required');
       _showAuthError(
         context,
         e.message,
@@ -809,17 +810,29 @@ class _ShopperSignInPageState extends State<_ShopperSignInPage> {
         onAction: notVerified
             ? () async {
                 final navigator = Navigator.of(context);
-                try {
-                  await ShopApi.resendCode(email);
-                } catch (_) {}
+                // A 202 response means the backend already issued a fresh
+                // code while handling this login attempt.
+                if (e.statusCode != 202) {
+                  try {
+                    await ShopApi.resendCode(email);
+                  } catch (_) {}
+                }
                 navigator.push(
                   MaterialPageRoute<bool>(
-                    builder: (_) => VerifyOtpScreen(email: email),
+                    builder: (_) => VerifyOtpScreen(
+                      email: email,
+                      deliveryMessage: e.message,
+                    ),
                   ),
                 );
               }
             : null,
       );
+    } catch (e) {
+      if (!mounted) return;
+      _showAuthError(context, e.toString());
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -1002,7 +1015,7 @@ class _ShopperRegistrationPageState extends State<_ShopperRegistrationPage> {
     setState(() => _isSubmitting = true);
     final email = _emailController.text.trim();
     try {
-      await ShopApi.register(
+      final registrationMessage = await ShopApi.register(
         name: _nameController.text.trim(),
         email: email,
         password: _passwordController.text,
@@ -1010,9 +1023,13 @@ class _ShopperRegistrationPageState extends State<_ShopperRegistrationPage> {
         phone: _phoneController.text.trim(),
       );
       if (!mounted) return;
-      setState(() => _isSubmitting = false);
       final verified = await Navigator.of(context).push<bool>(
-        MaterialPageRoute(builder: (_) => VerifyOtpScreen(email: email)),
+        MaterialPageRoute(
+          builder: (_) => VerifyOtpScreen(
+            email: email,
+            deliveryMessage: registrationMessage,
+          ),
+        ),
       );
       if (!mounted) return;
       if (verified == true) {
@@ -1025,8 +1042,12 @@ class _ShopperRegistrationPageState extends State<_ShopperRegistrationPage> {
       }
     } on ApiException catch (e) {
       if (!mounted) return;
-      setState(() => _isSubmitting = false);
       _showAuthError(context, e.message);
+    } catch (e) {
+      if (!mounted) return;
+      _showAuthError(context, e.toString());
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -1224,76 +1245,67 @@ class _AccountPageLayout extends StatelessWidget {
             height: constraints.maxHeight,
             child: SingleChildScrollView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      horizontalInset,
-                      6,
-                      horizontalInset,
-                      8,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: useCompactLayout
-                          ? MainAxisAlignment.start
-                          : MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              padding: EdgeInsets.fromLTRB(
+                horizontalInset,
+                6,
+                horizontalInset,
+                16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: headerHeight,
+                    child: Stack(
+                      alignment: Alignment.center,
                       children: [
-                        SizedBox(
-                          height: headerHeight,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: IconButton(
-                                  tooltip: 'Back',
-                                  onPressed: onBack,
-                                  icon: const Icon(Icons.arrow_back_rounded),
-                                ),
-                              ),
-                              _BrandLogo(width: logoWidth),
-                            ],
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: IconButton(
+                            tooltip: 'Back',
+                            onPressed: onBack,
+                            icon: const Icon(Icons.arrow_back_rounded),
                           ),
                         ),
-                        if (useCompactLayout) SizedBox(height: sectionGap),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              title,
-                              style: const TextStyle(
-                                color: Color(0xFF0751A5),
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              subtitle,
-                              style: const TextStyle(
-                                color: Color(0xFF6383A8),
-                                fontSize: 14,
-                                height: 1.35,
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (useCompactLayout) SizedBox(height: sectionGap),
-                        for (
-                          var index = 0;
-                          index < children.length;
-                          index++
-                        ) ...[
-                          if (useCompactLayout && index > 0)
-                            SizedBox(height: sectionGap),
-                          children[index],
-                        ],
+                        _BrandLogo(width: logoWidth),
                       ],
                     ),
                   ),
-                ),
+                  if (useCompactLayout) SizedBox(height: sectionGap),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: Color(0xFF0751A5),
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          color: Color(0xFF6383A8),
+                          fontSize: 14,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (useCompactLayout) SizedBox(height: sectionGap),
+                  for (
+                    var index = 0;
+                    index < children.length;
+                    index++
+                  ) ...[
+                    if (useCompactLayout && index > 0)
+                      SizedBox(height: sectionGap),
+                    children[index],
+                  ],
+                ],
               ),
             ),
           ),

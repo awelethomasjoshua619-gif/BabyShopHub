@@ -23,8 +23,13 @@ Widget _authHeader(String title, String subtitle) => Column(
 
 /// Enter the 6-digit code emailed after registration. Pops `true` on success.
 class VerifyOtpScreen extends StatefulWidget {
-  const VerifyOtpScreen({super.key, required this.email});
+  const VerifyOtpScreen({
+    super.key,
+    required this.email,
+    this.deliveryMessage,
+  });
   final String email;
+  final String? deliveryMessage;
 
   @override
   State<VerifyOtpScreen> createState() => _VerifyOtpScreenState();
@@ -102,8 +107,12 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          _authHeader('Verify your email',
-              'We sent a 6-digit code to\n${widget.email}'),
+          _authHeader(
+            'Verify your email',
+            (widget.deliveryMessage?.toLowerCase().contains('console') ?? false)
+                ? 'Check the backend console for the 6-digit code for\n${widget.email}'
+                : 'We sent a 6-digit code to\n${widget.email}',
+          ),
           TextField(
             controller: _code,
             keyboardType: TextInputType.number,

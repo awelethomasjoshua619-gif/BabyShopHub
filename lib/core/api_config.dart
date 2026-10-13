@@ -6,7 +6,11 @@ import 'package:flutter/foundation.dart';
 String get apiOrigin {
   const override = String.fromEnvironment('API_URL');
   if (override.isNotEmpty) return override;
-  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+  if (kIsWeb) {
+    final host = Uri.base.host;
+    return 'http://${host.isNotEmpty ? host : 'localhost'}:8081';
+  }
+  if (defaultTargetPlatform == TargetPlatform.android) {
     return 'http://10.0.2.2:8081';
   }
   return 'http://localhost:8081';

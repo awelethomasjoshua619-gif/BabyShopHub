@@ -81,7 +81,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             fontSize: 20,
                             fontWeight: FontWeight.w800)),
                     const SizedBox(height: 4),
-                    Text('${p.brandName} · ${p.categoryName}',
+                    Text(p.categoryName,
                         style: const TextStyle(
                             color: AppColors.slate, fontSize: 13)),
                     const SizedBox(height: 8),

@@ -69,13 +69,14 @@ Future<bool> addToCartWithFeedback(
 
 IconData categoryIcon(String name) {
   final n = name.toLowerCase();
-  if (n.contains('diaper')) return Icons.baby_changing_station_outlined;
-  if (n.contains('food')) return Icons.rice_bowl_outlined;
+  if (n.contains('carrier') || n.contains('gear') || n.contains('stroll')) return Icons.airline_seat_recline_normal_rounded;
+  if (n.contains('plate') || n.contains('tableware') || n.contains('dish')) return Icons.dinner_dining_outlined;
   if (n.contains('cloth')) return Icons.checkroom_outlined;
+  if (n.contains('bottle') || n.contains('feed')) return Icons.baby_changing_station;
+  if (n.contains('food')) return Icons.rice_bowl_outlined;
+  if (n.contains('diaper')) return Icons.child_care_outlined;
   if (n.contains('toy')) return Icons.toys_outlined;
-  if (n.contains('feed')) return Icons.local_drink_outlined;
   if (n.contains('skin')) return Icons.spa_outlined;
-  if (n.contains('stroll')) return Icons.stroller_outlined;
   if (n.contains('access')) return Icons.watch_outlined;
   return Icons.category_outlined;
 }
