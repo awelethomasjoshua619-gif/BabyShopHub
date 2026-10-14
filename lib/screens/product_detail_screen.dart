@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/sequential.dart';
 import '../core/app_colors.dart';
 import '../core/format.dart';
 import '../models/models.dart';
@@ -20,9 +21,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _image = 0;
   late Future<(Product, List<Review>)> _future = _load();
 
-  Future<(Product, List<Review>)> _load() =>
-      (ShopApi.product(widget.productId), ShopApi.reviews(widget.productId))
-          .wait;
+  Future<(Product, List<Review>)> _load() => loadInOrder2(
+        () => ShopApi.product(widget.productId),
+        () => ShopApi.reviews(widget.productId),
+      );
 
   void _reload() => setState(() {
         _future = _load();

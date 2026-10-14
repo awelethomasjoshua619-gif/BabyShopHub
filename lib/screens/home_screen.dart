@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/sequential.dart';
 import '../core/app_colors.dart';
 import '../models/models.dart';
 import '../services/shop_api.dart';
@@ -88,10 +89,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         Expanded(
           child: AsyncView<(List<Category>, List<Product>)>(
-            load: () => (
-              ShopApi.categories(),
-              ShopApi.products(size: 8, sortBy: 'createdAt', direction: 'desc'),
-            ).wait,
+            load: () => loadInOrder2(
+              () => ShopApi.categories(),
+              () => ShopApi.products(
+                  size: 8, sortBy: 'createdAt', direction: 'desc'),
+            ),
             builder: (context, data, reload) {
               final (categories, products) = data;
               return ListView(

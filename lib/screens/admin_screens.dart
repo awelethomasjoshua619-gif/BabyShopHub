@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../core/sequential.dart';
 import '../core/app_colors.dart';
 import '../core/format.dart';
 import '../models/models.dart';
@@ -103,11 +104,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       ),
       body: AsyncView<(List<AppUser>, List<OrderModel>, List<Product>)>(
         key: _key,
-        load: () => (
-          ShopApi.adminUsers(),
-          ShopApi.adminOrders(),
-          ShopApi.adminProducts(),
-        ).wait,
+        load: () => loadInOrder3(
+          () => ShopApi.adminUsers(),
+          () => ShopApi.adminOrders(),
+          () => ShopApi.adminProducts(),
+        ),
         builder: (context, data, reload) {
           final (users, orders, products) = data;
           final pending = orders
@@ -442,10 +443,10 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
   late int? _brandId = widget.product?.brandId;
   Uint8List? _imageBytes;
   String? _imageName;
-  late final Future<(List<Category>, List<Brand>)> _lookups = (
-    ShopApi.categories(),
-    ShopApi.brands(),
-  ).wait;
+  late final Future<(List<Category>, List<Brand>)> _lookups = loadInOrder2(
+    () => ShopApi.categories(),
+    () => ShopApi.brands(),
+  );
   bool _saving = false;
 
   @override

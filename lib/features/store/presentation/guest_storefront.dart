@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/sequential.dart';
 import '../../../core/api_config.dart';
 import '../../../core/format.dart';
 import '../../../core/theme/app_colors.dart';
@@ -77,8 +78,10 @@ class _GuestStorefrontState extends State<GuestStorefront> {
       _error = null;
     });
     try {
-      final result = await (ShopApi.products(size: 50), ShopApi.categories())
-          .wait;
+      final result = await loadInOrder2(
+        () => ShopApi.products(size: 50),
+        () => ShopApi.categories(),
+      );
       if (!mounted) return;
       final (products, categories) = result;
       setState(() {

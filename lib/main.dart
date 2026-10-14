@@ -5,6 +5,7 @@ import 'screens/main_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'core/api_client.dart';
+import 'core/api_config.dart';
 import 'core/app_theme.dart';
 import 'core/format.dart';
 import 'features/gateway/presentation/gateway_screen.dart';
@@ -19,6 +20,7 @@ const _blue = Color(0xFF9ABDE4);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await resolveApiOrigin(); // find the backend (emulator / USB phone / web)
   await Session.instance.restore();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

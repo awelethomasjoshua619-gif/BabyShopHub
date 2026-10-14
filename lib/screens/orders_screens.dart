@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../core/sequential.dart';
 import '../core/app_colors.dart';
 import '../core/format.dart';
 import '../models/models.dart';
@@ -149,8 +150,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Future<void> _load({bool silent = false}) async {
     if (!silent) setState(() => _loading = true);
     try {
-      final result =
-          await (ShopApi.order(widget.orderId), ShopApi.tracking(widget.orderId)).wait;
+      final result = await loadInOrder2(
+        () => ShopApi.order(widget.orderId),
+        () => ShopApi.tracking(widget.orderId),
+      );
       if (!mounted) return;
       setState(() {
         _order = result.$1;
